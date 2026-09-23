@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseConfigured } from "@/lib/supabase/config";
 import { signOut } from "@/app/(auth)/actions";
 
 export async function SiteHeader() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  if (supabaseConfigured) {
+    const supabase = await createClient();
+    ({
+      data: { user },
+    } = await supabase.auth.getUser());
+  }
 
   return (
     <header className="border-b border-slate-200 bg-white">

@@ -1,12 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { supabaseConfigured } from "@/lib/supabase/config";
+
 const PROTECTED = ["/panel", "/instructor", "/admin"];
 
 // Refresca la sesión de Supabase en cada request y hace una verificación
 // optimista de login. La autorización real (roles) se valida en cada página.
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
+  if (!supabaseConfigured) return response;
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

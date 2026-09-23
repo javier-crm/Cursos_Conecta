@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseConfigured } from "@/lib/supabase/config";
 
 export type Role = "student" | "instructor" | "admin";
 
 /** Devuelve el usuario y su perfil, o redirige a /entrar. */
 export async function requireUser(next = "/panel") {
+  if (!supabaseConfigured) redirect("/");
   const supabase = await createClient();
   const {
     data: { user },

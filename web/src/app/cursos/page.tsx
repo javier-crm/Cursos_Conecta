@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { supabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata = { title: "Cursos" };
 
@@ -16,13 +17,16 @@ type CourseRow = {
 const dateFmt = new Intl.DateTimeFormat("es-MX", { dateStyle: "long", timeStyle: "short" });
 
 export default async function Page() {
-  const supabase = await createClient();
-  const { data: courses } = await supabase
-    .from("courses")
-    .select("id, slug, title, subtitle, price_cents, currency, instructor:instructors(display_name), live_sessions(starts_at)")
-    .eq("status", "published")
-    .order("created_at", { ascending: false })
-    .returns<CourseRow[]>();
+  let courses: CourseRow[] | null = null;
+  if (supabaseConfigured) {
+    const supabase = await createClient();
+    ({ data: courses } = await supabase
+      .from("courses")
+      .select("id, slug, title, subtitle, price_cents, currency, instructor:instructors(display_name), live_sessions(starts_at)")
+      .eq("status", "published")
+      .order("created_at", { ascending: false })
+      .returns<CourseRow[]>());
+  }
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
