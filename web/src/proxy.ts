@@ -34,7 +34,9 @@ export async function proxy(request: NextRequest) {
   const isLoggedIn = Boolean(data?.claims);
   const { pathname, search } = request.nextUrl;
 
-  if (!isLoggedIn && PROTECTED.some((p) => pathname.startsWith(p))) {
+  // Coincidencia por segmento exacto: /instructor sí, /instructores no
+  const isProtected = PROTECTED.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  if (!isLoggedIn && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/entrar";
     url.search = `?next=${encodeURIComponent(pathname + search)}`;
