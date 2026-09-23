@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { CourseCard } from "@/components/CourseCard";
+import { Stars } from "@/components/Stars";
 import { getPublishedCourses } from "@/lib/catalog";
+import { getTopReviews } from "@/lib/reviews";
 
 const STEPS = [
   { title: "Elige tu curso", text: "Dos clases en vivo de una hora, con cupo limitado y fecha definida." },
@@ -33,7 +35,8 @@ const FAQS = [
 ];
 
 export default async function Home() {
-  const courses = (await getPublishedCourses()).slice(0, 3);
+  const [allCourses, testimonials] = await Promise.all([getPublishedCourses(), getTopReviews(3)]);
+  const courses = allCourses.slice(0, 3);
   const instructors = [...new Map(courses.map((c) => [c.instructor.slug, c.instructor])).values()];
 
   return (
@@ -111,6 +114,28 @@ export default async function Home() {
                 {ins.bio && <p className="mt-2 text-sm text-slate-600">{ins.bio}</p>}
               </div>
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* Testimonios */}
+      {testimonials.length > 0 && (
+        <section className="mx-auto w-full max-w-6xl px-4 py-16">
+          <h2 className="text-center text-2xl font-bold text-slate-900">Lo que dicen nuestros alumnos</h2>
+          <div className="mt-8 grid gap-6 sm:grid-cols-3">
+            {testimonials.map((review) => {
+              const course = Array.isArray(review.course) ? review.course[0] : review.course;
+              return (
+                <figure key={review.id} className="rounded-xl border border-slate-200 bg-white p-6">
+                  <Stars rating={review.rating} />
+                  <blockquote className="mt-3 text-sm leading-relaxed text-slate-600">“{review.comment}”</blockquote>
+                  <figcaption className="mt-3 text-sm">
+                    <span className="font-medium text-slate-900">{review.author_name}</span>
+                    {course && <span className="text-slate-500"> · {course.title}</span>}
+                  </figcaption>
+                </figure>
+              );
+            })}
           </div>
         </section>
       )}

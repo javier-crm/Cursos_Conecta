@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { supabaseConfigured } from "@/lib/supabase/config";
+import { AnnounceForm } from "./AnnounceForm";
 
 export const metadata = { title: "Panel de instructor" };
 
@@ -106,6 +107,8 @@ export default async function Page() {
                   </li>
                 ))}
               </ul>
+
+              {active.length > 0 && <AnnounceForm courseId={course.id} />}
 
               {active.length > 0 && (
                 <details className="mt-4">

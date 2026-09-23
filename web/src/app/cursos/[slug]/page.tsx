@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Stars } from "@/components/Stars";
+import { getCourseRating } from "@/lib/reviews";
 import {
   formatPrice,
   formatSessionDate,
@@ -35,6 +37,7 @@ export default async function Page({ params }: PageProps<"/cursos/[slug]">) {
   const course = await getCourseBySlug(slug);
   if (!course) notFound();
 
+  const rating = await getCourseRating(course.id);
   const left = seatsLeft(course);
   const soldOut = left === 0;
   const salesClosed =
@@ -43,6 +46,25 @@ export default async function Page({ params }: PageProps<"/cursos/[slug]">) {
 
   return (
     <main className="flex-1">
+      {rating.count > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Course",
+              name: course.title,
+              description: course.subtitle ?? undefined,
+              provider: { "@type": "Organization", name: "Cursos en Vivo" },
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: rating.average.toFixed(1),
+                reviewCount: rating.count,
+              },
+            }),
+          }}
+        />
+      )}
       {/* Encabezado */}
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto w-full max-w-6xl px-4 py-12">
@@ -51,9 +73,18 @@ export default async function Page({ params }: PageProps<"/cursos/[slug]">) {
           </p>
           <h1 className="mt-2 max-w-3xl text-3xl font-bold text-slate-900 sm:text-4xl">{course.title}</h1>
           {course.subtitle && <p className="mt-2 max-w-2xl text-lg text-slate-600">{course.subtitle}</p>}
-          <p className="mt-3 text-sm text-slate-500">
-            Imparte <span className="font-medium text-slate-700">{course.instructor.display_name}</span>
-            {" · "}{course.sessions.length} sesiones en vivo
+          <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+            <span>
+              Imparte <span className="font-medium text-slate-700">{course.instructor.display_name}</span>
+              {" · "}{course.sessions.length} sesiones en vivo
+            </span>
+            {rating.count > 0 && (
+              <span className="flex items-center gap-1.5">
+                <Stars rating={rating.average} />
+                <span className="font-medium text-slate-700">{rating.average.toFixed(1)}</span>
+                <span>({rating.count} {rating.count === 1 ? "reseña" : "reseñas"})</span>
+              </span>
+            )}
           </p>
         </div>
       </section>
@@ -89,6 +120,23 @@ export default async function Page({ params }: PageProps<"/cursos/[slug]">) {
               ¿No puedes en vivo? La grabación queda disponible {course.replay_hours} horas después de cada sesión.
             </p>
           </div>
+
+          {rating.count > 0 && (
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">Lo que dicen los alumnos</h2>
+              <ul className="mt-3 space-y-3">
+                {rating.reviews.filter((r) => r.comment).slice(0, 5).map((review) => (
+                  <li key={review.id} className="rounded-xl border border-slate-200 bg-white p-5">
+                    <div className="flex items-center justify-between gap-3">
+                      <Stars rating={review.rating} />
+                      <span className="text-sm text-slate-500">{review.author_name}</span>
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600">“{review.comment}”</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div>
             <h2 className="text-xl font-bold text-slate-900">Tu instructor</h2>

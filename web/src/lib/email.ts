@@ -67,6 +67,15 @@ export function purchaseConfirmationEmail(courseTitle: string, sessions: { title
   `);
 }
 
+export function reviewInviteEmail(courseTitle: string) {
+  return layout(`
+    <h1 style="font-size:22px">¿Qué te pareció el curso? ⭐</h1>
+    <p>Terminaste <strong>${courseTitle}</strong>. Tu opinión ayuda a otros alumnos a decidirse y a nosotros a mejorar.</p>
+    <p>Toma 30 segundos: califica con estrellas y, si quieres, deja un comentario.</p>
+    <p><a href="${SITE}/panel" style="display:inline-block;background:#4f46e5;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold">Calificar el curso</a></p>
+  `);
+}
+
 export function reminderEmail(courseTitle: string, sessionLabel: string, startsAt: Date, kind: "24h" | "1h") {
   const fmt = new Intl.DateTimeFormat("es-MX", {
     weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit",

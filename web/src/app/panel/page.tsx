@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
+import { ReviewForm } from "./ReviewForm";
 
 export const metadata = { title: "Mi panel" };
 
@@ -53,6 +54,14 @@ export default async function Page() {
     : { data: [] as { session_id: string; join_url: string | null; recording_url: string | null; recording_expires_at: string | null }[] };
 
   const accessBySession = new Map((accessRows ?? []).map((a) => [a.session_id, a]));
+
+  // Cursos que este alumno ya calificó
+  const { data: myReviews } = await supabase
+    .from("reviews")
+    .select("course_id")
+    .eq("user_id", user.id);
+  const reviewedCourses = new Set((myReviews ?? []).map((r) => r.course_id));
+
   const now = new Date();
   const firstName = profile?.full_name?.split(" ")[0];
 
@@ -86,6 +95,10 @@ export default async function Page() {
               const courseEnded =
                 sessions.length > 0 &&
                 sessions.every((s) => now > new Date(new Date(s.starts_at).getTime() + s.duration_minutes * 60_000));
+              const firstSessionEnded =
+                sessions.length > 0 &&
+                now > new Date(new Date(sessions[0].starts_at).getTime() + sessions[0].duration_minutes * 60_000);
+              const canReview = firstSessionEnded && !reviewedCourses.has(course.id);
               return (
                 <li key={enrollment.id} className="rounded-xl border border-slate-200 bg-white p-6">
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -165,6 +178,7 @@ export default async function Page() {
                       );
                     })}
                   </ul>
+                  {canReview && <ReviewForm courseId={course.id} />}
                 </li>
               );
             })}
