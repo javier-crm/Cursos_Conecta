@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe } from "@/lib/stripe";
+import { purchaseConfirmationEmail, sendEmail } from "@/lib/email";
 
 const OXXO_CUTOFF_DAYS = 3; // OXXO tarda hasta 3 días en confirmarse
 
@@ -214,6 +215,21 @@ export async function fulfillOrder(orderId: string, paymentIntentId: string | nu
 
   if (order.coupon_id) {
     await admin.rpc("increment_coupon_redemption", { p_coupon_id: order.coupon_id });
+  }
+
+  // Correo de confirmación con fechas de las sesiones
+  const [{ data: course }, { data: authUser }] = await Promise.all([
+    admin
+      .from("courses")
+      .select("title, live_sessions(position, title, starts_at)")
+      .eq("id", order.course_id)
+      .maybeSingle(),
+    admin.auth.admin.getUserById(order.user_id),
+  ]);
+  const email = authUser?.user?.email;
+  if (course && email) {
+    const sessions = [...(course.live_sessions ?? [])].sort((a, b) => a.position - b.position);
+    await sendEmail(email, `¡Tu lugar está confirmado! ${course.title}`, purchaseConfirmationEmail(course.title, sessions));
   }
 }
 

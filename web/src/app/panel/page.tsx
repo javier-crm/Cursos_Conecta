@@ -20,13 +20,12 @@ type SessionRow = {
   duration_minutes: number;
 };
 
+type CourseRow = { id: string; slug: string; title: string; replay_hours: number; live_sessions: SessionRow[] };
+
 type EnrollmentRow = {
   id: string;
   permanent_replay: boolean;
-  course:
-    | { slug: string; title: string; replay_hours: number; live_sessions: SessionRow[] }
-    | { slug: string; title: string; replay_hours: number; live_sessions: SessionRow[] }[]
-    | null;
+  course: CourseRow | CourseRow[] | null;
 };
 
 export default async function Page() {
@@ -35,7 +34,7 @@ export default async function Page() {
   const { data: enrollments } = await supabase
     .from("enrollments")
     .select(
-      "id, permanent_replay, course:courses(slug, title, replay_hours, live_sessions(id, position, title, starts_at, duration_minutes))",
+      "id, permanent_replay, course:courses(id, slug, title, replay_hours, live_sessions(id, position, title, starts_at, duration_minutes))",
     )
     .eq("user_id", user.id)
     .eq("status", "active")
@@ -84,15 +83,28 @@ export default async function Page() {
               const course = Array.isArray(enrollment.course) ? enrollment.course[0] : enrollment.course;
               if (!course) return null;
               const sessions = [...course.live_sessions].sort((a, b) => a.position - b.position);
+              const courseEnded =
+                sessions.length > 0 &&
+                sessions.every((s) => now > new Date(new Date(s.starts_at).getTime() + s.duration_minutes * 60_000));
               return (
                 <li key={enrollment.id} className="rounded-xl border border-slate-200 bg-white p-6">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="font-semibold text-slate-900">{course.title}</h3>
-                    {enrollment.permanent_replay && (
-                      <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
-                        Grabaciones permanentes
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {enrollment.permanent_replay && (
+                        <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                          Grabaciones permanentes
+                        </span>
+                      )}
+                      {courseEnded && (
+                        <Link
+                          href={`/panel/constancia/${course.id}`}
+                          className="rounded-full border border-indigo-200 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+                        >
+                          Descargar constancia
+                        </Link>
+                      )}
+                    </div>
                   </div>
                   <ul className="mt-4 space-y-3">
                     {sessions.map((session) => {

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { supabaseConfigured } from "@/lib/supabase/config";
@@ -52,6 +53,13 @@ export default async function Page() {
     <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
       <h1 className="text-3xl font-bold text-slate-900">Administración</h1>
 
+      <nav className="mt-4 flex flex-wrap gap-3 text-sm">
+        <Link href="/admin/cursos/nuevo" className="rounded-lg bg-indigo-600 px-3 py-1.5 font-medium text-white hover:bg-indigo-700">+ Nuevo curso</Link>
+        <Link href="/admin/instructores" className="rounded-lg bg-slate-100 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-200">Instructores</Link>
+        <Link href="/admin/cupones" className="rounded-lg bg-slate-100 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-200">Cupones</Link>
+        <a href="/admin/exportar" className="rounded-lg bg-slate-100 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-200">Exportar ventas (CSV)</a>
+      </nav>
+
       <section className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-slate-200 bg-white p-5">
           <p className="text-sm text-slate-500">Ventas totales</p>
@@ -103,7 +111,7 @@ export default async function Page() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="font-semibold text-slate-900">
-                      {course.title}{" "}
+                      <Link href={`/admin/cursos/${course.id}`} className="hover:text-indigo-700 hover:underline">{course.title}</Link>{" "}
                       <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">{course.status}</span>
                     </p>
                     <p className="text-sm text-slate-500">{money(course.price_cents)} · cupo {course.capacity ?? "ilimitado"}</p>
