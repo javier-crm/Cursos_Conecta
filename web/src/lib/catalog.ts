@@ -23,6 +23,7 @@ export type CatalogCourse = {
   subtitle: string | null;
   description: string | null;
   cover_url: string | null;
+  video_url: string | null;
   price_cents: number;
   currency: string;
   capacity: number | null;
@@ -34,7 +35,7 @@ export type CatalogCourse = {
   seats_taken: number;
 };
 
-const COURSE_SELECT = `id, slug, title, subtitle, description, cover_url, price_cents, currency,
+const COURSE_SELECT = `id, slug, title, subtitle, description, cover_url, video_url, price_cents, currency,
   capacity, replay_hours, permanent_replay_price_cents, sales_close_at,
   instructor:instructors(slug, display_name, topic, bio, photo_url),
   live_sessions(position, title, starts_at, duration_minutes)`;
@@ -81,6 +82,7 @@ const DEMO_COURSES: CatalogCourse[] = [
     description:
       "En dos sesiones prácticas verás cómo armar una estrategia digital sencilla: a quién hablarle, en qué canal invertir y cómo medir si tu publicidad está dejando dinero. Saldrás con un plan aplicable a tu negocio desde la primera semana.",
     cover_url: null,
+    video_url: null,
     price_cents: 99000,
     currency: "MXN",
     capacity: 50,
@@ -102,6 +104,7 @@ const DEMO_COURSES: CatalogCourse[] = [
     description:
       "Aprende a leer tu estado de resultados, controlar tu flujo de efectivo y ponerle precio a lo que vendes sin regalar margen. Sin tecnicismos: números claros para tomar decisiones.",
     cover_url: null,
+    video_url: null,
     price_cents: 119000,
     currency: "MXN",
     capacity: 50,
@@ -123,6 +126,7 @@ const DEMO_COURSES: CatalogCourse[] = [
     description:
       "Un método paso a paso para conseguir reuniones con clientes empresariales: a quién buscar, qué decirle y cómo dar seguimiento sin perseguir. Incluye plantillas de mensajes listas para usar.",
     cover_url: null,
+    video_url: null,
     price_cents: 99000,
     currency: "MXN",
     capacity: 40,

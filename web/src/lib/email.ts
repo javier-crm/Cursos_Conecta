@@ -67,6 +67,25 @@ export function purchaseConfirmationEmail(courseTitle: string, sessions: { title
   `);
 }
 
+export function cartRecoveryEmail(courseTitle: string, slug: string) {
+  return layout(`
+    <h1 style="font-size:22px">Tu lugar sigue disponible 🎯</h1>
+    <p>Empezaste tu inscripción a <strong>${courseTitle}</strong> pero no terminaste el pago.</p>
+    <p>El cupo es limitado — completa tu inscripción y aparta tu lugar:</p>
+    <p><a href="${SITE}/cursos/${slug}/comprar" style="display:inline-block;background:#4f46e5;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold">Completar mi inscripción</a></p>
+    <p style="color:#64748b;font-size:14px">Si ya pagaste en OXXO, ignora este correo: tu pago se confirmará solo.</p>
+  `);
+}
+
+export function waitlistSpotEmail(courseTitle: string, slug: string) {
+  return layout(`
+    <h1 style="font-size:22px">¡Hay lugar para ti! 🎉</h1>
+    <p>Estabas en la lista de espera de <strong>${courseTitle}</strong> y ya hay lugares disponibles.</p>
+    <p>Corre antes de que se agoten otra vez:</p>
+    <p><a href="${SITE}/cursos/${slug}" style="display:inline-block;background:#4f46e5;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold">Apartar mi lugar</a></p>
+  `);
+}
+
 export function reviewInviteEmail(courseTitle: string) {
   return layout(`
     <h1 style="font-size:22px">¿Qué te pareció el curso? ⭐</h1>

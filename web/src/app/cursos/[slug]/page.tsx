@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Stars } from "@/components/Stars";
 import { getCourseRating } from "@/lib/reviews";
+import { couponLabel, discountedCents, getFeaturedCouponFor, toEmbedUrl } from "@/lib/promos";
+import { WaitlistForm } from "./WaitlistForm";
 import {
   formatPrice,
   formatSessionDate,
@@ -37,7 +39,8 @@ export default async function Page({ params }: PageProps<"/cursos/[slug]">) {
   const course = await getCourseBySlug(slug);
   if (!course) notFound();
 
-  const rating = await getCourseRating(course.id);
+  const [rating, coupon] = await Promise.all([getCourseRating(course.id), getFeaturedCouponFor(course.id)]);
+  const videoEmbed = toEmbedUrl(course.video_url);
   const left = seatsLeft(course);
   const soldOut = left === 0;
   const salesClosed =
@@ -92,6 +95,18 @@ export default async function Page({ params }: PageProps<"/cursos/[slug]">) {
       <section className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-10 lg:grid-cols-[1fr_360px]">
         {/* Columna principal */}
         <div className="space-y-10">
+          {videoEmbed && (
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-black">
+              <iframe
+                src={videoEmbed}
+                title={`Video de presentación: ${course.title}`}
+                className="aspect-video w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          )}
+
           {course.description && (
             <div>
               <h2 className="text-xl font-bold text-slate-900">¿De qué trata?</h2>
@@ -160,7 +175,27 @@ export default async function Page({ params }: PageProps<"/cursos/[slug]">) {
         {/* Tarjeta de compra */}
         <aside className="lg:sticky lg:top-6 lg:self-start">
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-3xl font-bold text-slate-900">{formatPrice(course)}</p>
+            {coupon && canBuy ? (
+              <>
+                <p className="text-3xl font-bold text-slate-900">
+                  {formatPrice({ price_cents: discountedCents(coupon, course.price_cents), currency: course.currency })}
+                  <span className="ml-2 align-middle text-lg font-normal text-slate-400 line-through">
+                    {formatPrice(course)}
+                  </span>
+                </p>
+                <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">
+                  🏷️ Usa el cupón <span className="font-mono">{coupon.code}</span> al pagar: {couponLabel(coupon)}
+                  {coupon.expires_at && (
+                    <span className="block font-normal">
+                      Válido hasta el{" "}
+                      {new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long", timeZone: "America/Monterrey" }).format(new Date(coupon.expires_at))}
+                    </span>
+                  )}
+                </p>
+              </>
+            ) : (
+              <p className="text-3xl font-bold text-slate-900">{formatPrice(course)}</p>
+            )}
             <p className="mt-1 text-sm text-slate-500">Pago único · tarjeta, OXXO o meses sin intereses</p>
 
             {left != null && !soldOut && left <= 10 && (
@@ -177,9 +212,12 @@ export default async function Page({ params }: PageProps<"/cursos/[slug]">) {
                 Inscribirme
               </Link>
             ) : (
-              <div className="mt-5 rounded-lg bg-slate-100 px-4 py-3 text-center font-semibold text-slate-500">
-                {soldOut ? "Cupo agotado" : "Ventas cerradas"}
-              </div>
+              <>
+                <div className="mt-5 rounded-lg bg-slate-100 px-4 py-3 text-center font-semibold text-slate-500">
+                  {soldOut ? "Cupo agotado" : "Ventas cerradas"}
+                </div>
+                <WaitlistForm courseId={course.id} />
+              </>
             )}
 
             <ul className="mt-6 space-y-2.5 text-sm text-slate-600">

@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { ReviewForm } from "./ReviewForm";
+import { ReferralCard } from "./ReferralCard";
+import { getMyReferralCode } from "./referral-actions";
+import { supabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata = { title: "Mi panel" };
 
@@ -54,6 +57,7 @@ export default async function Page() {
     : { data: [] as { session_id: string; join_url: string | null; recording_url: string | null; recording_expires_at: string | null }[] };
 
   const accessBySession = new Map((accessRows ?? []).map((a) => [a.session_id, a]));
+  const referral = supabaseConfigured ? await getMyReferralCode() : null;
 
   // Cursos que este alumno ya calificó
   const { data: myReviews } = await supabase
@@ -185,6 +189,14 @@ export default async function Page() {
           </ul>
         )}
       </section>
+
+      {referral && (
+        <ReferralCard
+          code={referral.code}
+          uses={referral.uses}
+          siteUrl={process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}
+        />
+      )}
     </main>
   );
 }

@@ -21,6 +21,7 @@ export async function SiteHeader() {
         <nav className="flex items-center gap-4 text-sm font-medium">
           <Link href="/cursos" className="text-slate-600 hover:text-slate-900">Cursos</Link>
           <Link href="/instructores" className="hidden text-slate-600 hover:text-slate-900 sm:inline">Conferencistas</Link>
+          <Link href="/paquetes" className="hidden text-slate-600 hover:text-slate-900 md:inline">Paquetes</Link>
           {user ? (
             <>
               <Link href="/panel" className="text-slate-600 hover:text-slate-900">Mi panel</Link>

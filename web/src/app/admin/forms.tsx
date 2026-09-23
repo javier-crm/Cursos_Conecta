@@ -72,6 +72,7 @@ export type CourseFormData = {
   replay_hours?: number;
   permanent_replay_price_cents?: number | null;
   sales_close_at?: string | null;
+  video_url?: string | null;
   status?: string;
   sessions?: { position: number; title: string | null; starts_at: string; duration_minutes: number }[];
 };
@@ -156,6 +157,13 @@ export function CourseForm({
           defaultValue={toLocalInput(course?.sales_close_at)}
         />
       </div>
+      <Field
+        label="Video de presentación (liga de YouTube o Vimeo, opcional)"
+        name="video_url"
+        type="url"
+        defaultValue={course?.video_url ?? ""}
+        placeholder="https://youtu.be/…"
+      />
 
       <fieldset className="rounded-xl border border-slate-200 p-4">
         <legend className="px-1 text-sm font-semibold text-slate-700">Sesiones en vivo (deja la fecha vacía para quitar una)</legend>
@@ -221,6 +229,13 @@ export function CouponForm({ courses }: { courses: { id: string; title: string }
         <Field label="Usos máximos (vacío = sin límite)" name="max_redemptions" type="number" min={1} />
         <Field label="Expira (hora MTY)" name="expires_at" type="datetime-local" />
       </div>
+      <label className="flex items-start gap-2 text-sm text-slate-700">
+        <input type="checkbox" name="featured" className="mt-0.5" />
+        <span>
+          <b>Mostrar en la página del curso</b> — aparece como oferta con precio tachado
+          (“Usa el cupón X antes del …”). Solo uno destacado a la vez por curso.
+        </span>
+      </label>
       <Feedback state={state} />
       <SubmitButton pendingText="Creando…">Crear cupón</SubmitButton>
     </form>

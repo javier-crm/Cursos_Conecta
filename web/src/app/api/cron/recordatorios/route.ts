@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { reminderEmail, reviewInviteEmail, sendEmail } from "@/lib/email";
+import { cartRecoveryEmail, reminderEmail, reviewInviteEmail, sendEmail } from "@/lib/email";
 import { normalizePhoneMx, sendCourseNotice, whatsappConfigured } from "@/lib/whatsapp";
 
 // Recordatorios 24 h, 1 h y 30 min antes de cada sesión (30 min incluye
@@ -132,6 +132,34 @@ export async function GET(request: NextRequest) {
       }
     }
     await admin.from("session_reminders").insert({ session_id: session.id, kind: "review" });
+  }
+
+  // --- Recuperación de carritos: orden pendiente sin pagar tras 1 h ---
+  const { data: abandoned } = await admin
+    .from("orders")
+    .select("id, user_id, payment_method, course:courses(title, slug, sales_close_at)")
+    .eq("status", "pending")
+    .is("recovery_sent_at", null)
+    .not("course_id", "is", null)
+    .gte("created_at", new Date(now - 24 * 3600_000).toISOString())
+    .lte("created_at", new Date(now - 60 * 60_000).toISOString());
+
+  for (const order of abandoned ?? []) {
+    const course = Array.isArray(order.course) ? order.course[0] : order.course;
+    if (!course) continue;
+    // No molestar si eligió OXXO (su pago está en proceso) ni si ya cerró la venta
+    const salesOpen = !course.sales_close_at || new Date(course.sales_close_at) > new Date();
+    if (order.payment_method === "oxxo" || !salesOpen) {
+      await admin.from("orders").update({ recovery_sent_at: new Date().toISOString() }).eq("id", order.id);
+      continue;
+    }
+    const { data: authUser } = await admin.auth.admin.getUserById(order.user_id);
+    const email = authUser?.user?.email;
+    if (email) {
+      await sendEmail(email, `Tu lugar en ${course.title} sigue disponible`, cartRecoveryEmail(course.title, course.slug));
+      sent++;
+    }
+    await admin.from("orders").update({ recovery_sent_at: new Date().toISOString() }).eq("id", order.id);
   }
 
   return NextResponse.json({ ok: true, sent });

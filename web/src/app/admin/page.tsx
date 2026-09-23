@@ -58,6 +58,7 @@ export default async function Page() {
         <Link href="/admin/instructores" className="rounded-lg bg-slate-100 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-200">Instructores</Link>
         <Link href="/admin/cupones" className="rounded-lg bg-slate-100 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-200">Cupones</Link>
         <Link href="/admin/resenas" className="rounded-lg bg-slate-100 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-200">Reseñas</Link>
+        <Link href="/admin/paquetes" className="rounded-lg bg-slate-100 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-200">Paquetes</Link>
         <a href="/admin/exportar" className="rounded-lg bg-slate-100 px-3 py-1.5 font-medium text-slate-700 hover:bg-slate-200">Exportar ventas (CSV)</a>
       </nav>
 

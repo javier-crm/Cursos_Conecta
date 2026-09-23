@@ -73,6 +73,7 @@ export async function saveCourse(_: CrudState, formData: FormData): Promise<Crud
     permanent_replay_price_cents: replayPriceRaw ? Math.round(Number(replayPriceRaw) * 100) : null,
     // Monterrey es UTC-6 todo el año
     sales_close_at: salesCloseRaw ? new Date(`${salesCloseRaw}:00-06:00`).toISOString() : null,
+    video_url: String(formData.get("video_url") ?? "").trim() || null,
     status: String(formData.get("status") ?? "draft"),
   };
 
@@ -118,6 +119,31 @@ export async function saveCourse(_: CrudState, formData: FormData): Promise<Crud
   return { message: "Curso guardado." };
 }
 
+/* ---------- Lista de espera ---------- */
+
+export async function notifyWaitlist(_: CrudState, formData: FormData): Promise<CrudState> {
+  await requireRole(["admin"], "/admin");
+  const admin = createAdminClient();
+  const courseId = String(formData.get("course_id"));
+
+  const [{ data: course }, { data: waiting }] = await Promise.all([
+    admin.from("courses").select("title, slug").eq("id", courseId).maybeSingle(),
+    admin.from("waitlist").select("id, email").eq("course_id", courseId).is("notified_at", null),
+  ]);
+  if (!course) return { error: "Curso no encontrado." };
+  if (!waiting?.length) return { error: "No hay nadie pendiente de avisar en la lista de espera." };
+
+  const { waitlistSpotEmail, sendEmail } = await import("@/lib/email");
+  const html = waitlistSpotEmail(course.title, course.slug);
+  for (const person of waiting) {
+    await sendEmail(person.email, `¡Hay lugar! ${course.title}`, html);
+    await admin.from("waitlist").update({ notified_at: new Date().toISOString() }).eq("id", person.id);
+  }
+
+  revalidatePath("/admin");
+  return { message: `Avisamos a ${waiting.length} personas de la lista de espera.` };
+}
+
 /* ---------- Cupones ---------- */
 
 export async function saveCoupon(_: CrudState, formData: FormData): Promise<CrudState> {
@@ -143,6 +169,7 @@ export async function saveCoupon(_: CrudState, formData: FormData): Promise<Crud
     course_id: courseId || null,
     max_redemptions: maxRaw ? Number(maxRaw) : null,
     expires_at: expiresRaw ? new Date(`${expiresRaw}:00-06:00`).toISOString() : null,
+    featured: formData.get("featured") === "on",
   });
   if (error) return { error: error.message.includes("duplicate") ? "Ya existe un cupón con ese código." : "No se pudo crear el cupón." };
 
