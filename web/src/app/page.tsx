@@ -3,6 +3,7 @@ import { CourseCard } from "@/components/CourseCard";
 import { Stars } from "@/components/Stars";
 import { getPublishedCourses } from "@/lib/catalog";
 import { getTopReviews } from "@/lib/reviews";
+import { FAQS as ALL_FAQS } from "@/lib/faqs";
 
 const STEPS = [
   { title: "Elige tu curso", text: "Dos clases en vivo de una hora, con cupo limitado y fecha definida." },
@@ -11,28 +12,7 @@ const STEPS = [
   { title: "Repasa la grabación", text: "Disponible 72 horas después de cada clase por si no pudiste asistir." },
 ];
 
-const FAQS = [
-  {
-    q: "¿Qué pasa si no puedo asistir en vivo?",
-    a: "La grabación de cada sesión queda disponible en tu panel durante 72 horas, para que la veas cuando puedas.",
-  },
-  {
-    q: "¿Cómo entro a la clase?",
-    a: "Desde tu panel. Unos minutos antes de cada sesión aparece el botón «Entrar a la clase»; también te enviamos recordatorios por correo.",
-  },
-  {
-    q: "¿Puedo pagar en OXXO o a meses?",
-    a: "Sí: tarjeta de crédito o débito, pago en OXXO y meses sin intereses con tarjetas participantes. El pago en OXXO cierra 3 días antes de la primera clase.",
-  },
-  {
-    q: "¿Dan factura?",
-    a: "Sí. Después de tu compra puedes solicitar tu factura (CFDI) desde tu panel capturando tus datos fiscales.",
-  },
-  {
-    q: "¿Recibo alguna constancia?",
-    a: "Sí, al terminar el curso descargas tu constancia de participación desde tu panel.",
-  },
-];
+const FAQS = ALL_FAQS.slice(1, 6);
 
 export default async function Home() {
   const [allCourses, testimonials] = await Promise.all([getPublishedCourses(), getTopReviews(3)]);
@@ -144,6 +124,9 @@ export default async function Home() {
       <section className="bg-white">
         <div className="mx-auto w-full max-w-3xl px-4 py-16">
           <h2 className="text-center text-2xl font-bold text-slate-900">Preguntas frecuentes</h2>
+          <p className="mt-2 text-center text-sm">
+            <Link href="/preguntas-frecuentes" className="text-indigo-600 hover:underline">Ver todas las preguntas →</Link>
+          </p>
           <div className="mt-8 space-y-3">
             {FAQS.map((faq) => (
               <details key={faq.q} className="group rounded-xl border border-slate-200 bg-slate-50 p-5">

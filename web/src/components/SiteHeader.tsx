@@ -50,6 +50,7 @@ export function SiteFooter() {
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-2 px-4 py-6 text-sm text-slate-500 sm:flex-row sm:justify-between">
         <p>© {new Date().getFullYear()} Cursos en Vivo</p>
         <nav className="flex gap-4">
+          <Link href="/preguntas-frecuentes" className="hover:text-slate-700">Preguntas frecuentes</Link>
           <Link href="/terminos" className="hover:text-slate-700">Términos</Link>
           <Link href="/privacidad" className="hover:text-slate-700">Privacidad</Link>
         </nav>
