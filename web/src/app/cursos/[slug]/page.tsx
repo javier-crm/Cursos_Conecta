@@ -174,7 +174,7 @@ export default async function Page({ params }: PageProps<"/cursos/[slug]">) {
 
         {/* Tarjeta de compra */}
         <aside className="lg:sticky lg:top-6 lg:self-start">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="card p-6 shadow-lg shadow-indigo-900/5">
             {coupon && canBuy ? (
               <>
                 <p className="text-3xl font-bold text-slate-900">
@@ -207,7 +207,7 @@ export default async function Page({ params }: PageProps<"/cursos/[slug]">) {
             {canBuy ? (
               <Link
                 href={`/cursos/${course.slug}/comprar`}
-                className="mt-5 block rounded-lg bg-indigo-600 px-4 py-3 text-center font-semibold text-white transition hover:bg-indigo-700"
+                className="btn-primary mt-5 block px-4 py-3 text-center"
               >
                 Inscribirme
               </Link>

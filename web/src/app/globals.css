@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f8fc;
+  --foreground: #0f172a;
 }
 
 @theme inline {
@@ -12,15 +12,53 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}
+
+::selection {
+  background: #c7d2fe;
+  color: #1e1b4b;
+}
+
+/* Botón primario con degradado, reutilizable */
+.btn-primary {
+  background-image: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -8px rgb(79 70 229 / 0.5);
+  transition: box-shadow 0.2s, transform 0.2s, filter 0.2s;
+}
+.btn-primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 14px 30px -8px rgb(79 70 229 / 0.55);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Tarjeta con profundidad */
+.card {
+  background: #fff;
+  border: 1px solid rgb(226 232 240 / 0.8);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -16px rgb(15 23 42 / 0.08);
+  transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  border-color: rgb(165 180 252 / 0.8);
+  box-shadow: 0 4px 8px rgb(15 23 42 / 0.04), 0 20px 40px -16px rgb(79 70 229 / 0.25);
+}
+
+/* Texto con degradado para acentos de titulares */
+.text-gradient {
+  background-image: linear-gradient(135deg, #4f46e5, #9333ea);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }

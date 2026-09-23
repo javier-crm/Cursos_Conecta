@@ -15,10 +15,10 @@ export function CourseCard({ course }: { course: CatalogCourse }) {
   return (
     <Link
       href={`/cursos/${course.slug}`}
-      className="group flex flex-col rounded-xl border border-slate-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md"
+      className="card card-hover group flex flex-col p-6"
     >
       <div className="flex items-start justify-between gap-3">
-        <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+        <span className="rounded-full bg-gradient-to-r from-indigo-50 to-violet-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-100">
           {course.instructor.topic ?? "Curso en vivo"}
         </span>
         {soldOut ? (
