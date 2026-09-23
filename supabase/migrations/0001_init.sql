@@ -82,8 +82,9 @@ create table public.live_session_access (
   session_id             uuid primary key references public.live_sessions(id) on delete cascade,
   zoom_meeting_id        text,
   join_url               text,
-  recording_provider     text,          -- 'bunny' | 'mux'
+  recording_provider     text,          -- 'zoom' | 'bunny' | 'mux'
   recording_asset_id     text,
+  recording_url          text,          -- enlace de reproducción (v1: liga de Zoom)
   recording_ready_at     timestamptz,
   recording_expires_at   timestamptz    -- ready_at + replay_hours (para quien no compró acceso permanente)
 );
@@ -162,7 +163,7 @@ create table public.invoices (
   is_global      boolean not null default false,
   period_start   date,                                    -- solo factura global
   period_end     date,
-  facturapi_id   text unique,
+  facturama_id   text unique,
   uuid_sat       text,
   status         invoice_status not null default 'pending',
   total_cents    integer,

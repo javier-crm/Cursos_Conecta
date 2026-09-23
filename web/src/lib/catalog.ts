@@ -27,6 +27,7 @@ export type CatalogCourse = {
   currency: string;
   capacity: number | null;
   replay_hours: number;
+  permanent_replay_price_cents: number | null;
   sales_close_at: string | null;
   instructor: CatalogInstructor;
   sessions: CatalogSession[];
@@ -34,7 +35,7 @@ export type CatalogCourse = {
 };
 
 const COURSE_SELECT = `id, slug, title, subtitle, description, cover_url, price_cents, currency,
-  capacity, replay_hours, sales_close_at,
+  capacity, replay_hours, permanent_replay_price_cents, sales_close_at,
   instructor:instructors(slug, display_name, topic, bio, photo_url),
   live_sessions(position, title, starts_at, duration_minutes)`;
 
@@ -84,6 +85,7 @@ const DEMO_COURSES: CatalogCourse[] = [
     currency: "MXN",
     capacity: 50,
     replay_hours: 72,
+    permanent_replay_price_cents: 29900,
     sales_close_at: inDays(20),
     instructor: DEMO_INSTRUCTORS["ana-lopez"],
     sessions: [
@@ -104,6 +106,7 @@ const DEMO_COURSES: CatalogCourse[] = [
     currency: "MXN",
     capacity: 50,
     replay_hours: 72,
+    permanent_replay_price_cents: 29900,
     sales_close_at: inDays(27),
     instructor: DEMO_INSTRUCTORS["juan-perez"],
     sessions: [
@@ -124,6 +127,7 @@ const DEMO_COURSES: CatalogCourse[] = [
     currency: "MXN",
     capacity: 40,
     replay_hours: 72,
+    permanent_replay_price_cents: 29900,
     sales_close_at: inDays(34),
     instructor: DEMO_INSTRUCTORS["sofia-diaz"],
     sessions: [
