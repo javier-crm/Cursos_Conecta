@@ -1,16 +1,34 @@
 import "server-only";
+import nodemailer, { type Transporter } from "nodemailer";
 
-// Correos transaccionales con Resend. Mientras no haya RESEND_API_KEY,
-// las funciones no hacen nada (la compra sigue funcionando sin correo).
+// Correos transaccionales por SMTP (Hostinger) o, en su defecto, Resend.
+// Sin configuración, las funciones no hacen nada (la compra sigue funcionando).
 
-export const emailConfigured = Boolean(process.env.RESEND_API_KEY);
+const smtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+export const emailConfigured = smtpConfigured || Boolean(process.env.RESEND_API_KEY);
 
-const FROM = process.env.EMAIL_FROM ?? "Cursos en Vivo <onboarding@resend.dev>";
+const FROM = process.env.EMAIL_FROM ?? process.env.SMTP_USER ?? "Cursos en Vivo <onboarding@resend.dev>";
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
+let transporter: Transporter | null = null;
+
+function getTransporter() {
+  transporter ??= nodemailer.createTransport({
+    host: process.env.SMTP_HOST, // Hostinger: smtp.hostinger.com
+    port: Number(process.env.SMTP_PORT ?? 465),
+    secure: Number(process.env.SMTP_PORT ?? 465) === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
+  });
+  return transporter;
+}
+
 export async function sendEmail(to: string, subject: string, html: string) {
-  if (!emailConfigured || !to) return;
+  if (!to || !emailConfigured) return;
   try {
+    if (smtpConfigured) {
+      await getTransporter().sendMail({ from: FROM, to, subject, html });
+      return;
+    }
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -21,7 +39,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
     });
     if (!res.ok) console.error("Resend:", res.status, await res.text());
   } catch (err) {
-    console.error("Resend:", err);
+    console.error("Email:", err);
   }
 }
 

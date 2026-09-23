@@ -16,6 +16,6 @@ from (values
 join public.instructors i on i.slug = c.instructor_slug;
 
 insert into public.live_sessions (course_id, position, title, starts_at, duration_minutes)
-select id, 1, 'Sesión 1', now() + interval '21 days' + time '19:00' - current_time, 60 from public.courses
+select id, 1, 'Sesión 1', ((current_date + 21) + time '19:00') at time zone 'America/Monterrey', 60 from public.courses
 union all
-select id, 2, 'Sesión 2', now() + interval '23 days' + time '19:00' - current_time, 60 from public.courses;
+select id, 2, 'Sesión 2', ((current_date + 23) + time '19:00') at time zone 'America/Monterrey', 60 from public.courses;
