@@ -1,0 +1,155 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  formatPrice,
+  formatSessionDate,
+  getCourseBySlug,
+  getPublishedCourses,
+  seatsLeft,
+} from "@/lib/catalog";
+
+export async function generateMetadata({ params }: PageProps<"/cursos/[slug]">) {
+  const { slug } = await params;
+  const course = await getCourseBySlug(slug);
+  if (!course) return { title: "Curso no encontrado" };
+  return {
+    title: course.title,
+    description: course.subtitle ?? course.description?.slice(0, 160),
+    openGraph: {
+      title: course.title,
+      description: course.subtitle ?? undefined,
+      ...(course.cover_url ? { images: [course.cover_url] } : {}),
+    },
+  };
+}
+
+const INCLUDES = (replayHours: number) => [
+  "Sesiones en vivo de 1 hora con espacio para preguntas",
+  `Grabación disponible ${replayHours} horas después de cada sesión`,
+  "Material descargable de cada sesión",
+  "Constancia de participación al terminar",
+  "Factura (CFDI) si la necesitas",
+];
+
+export default async function Page({ params }: PageProps<"/cursos/[slug]">) {
+  const { slug } = await params;
+  const course = await getCourseBySlug(slug);
+  if (!course) notFound();
+
+  const left = seatsLeft(course);
+  const soldOut = left === 0;
+  const salesClosed =
+    course.sales_close_at != null && new Date(course.sales_close_at) < new Date();
+  const canBuy = !soldOut && !salesClosed;
+
+  return (
+    <main className="flex-1">
+      {/* Encabezado */}
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto w-full max-w-6xl px-4 py-12">
+          <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">
+            {course.instructor.topic ?? "Curso en vivo"}
+          </p>
+          <h1 className="mt-2 max-w-3xl text-3xl font-bold text-slate-900 sm:text-4xl">{course.title}</h1>
+          {course.subtitle && <p className="mt-2 max-w-2xl text-lg text-slate-600">{course.subtitle}</p>}
+          <p className="mt-3 text-sm text-slate-500">
+            Imparte <span className="font-medium text-slate-700">{course.instructor.display_name}</span>
+            {" · "}{course.sessions.length} sesiones en vivo
+          </p>
+        </div>
+      </section>
+
+      <section className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-10 lg:grid-cols-[1fr_360px]">
+        {/* Columna principal */}
+        <div className="space-y-10">
+          {course.description && (
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">¿De qué trata?</h2>
+              <p className="mt-3 whitespace-pre-line leading-relaxed text-slate-700">{course.description}</p>
+            </div>
+          )}
+
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Fechas y horarios</h2>
+            <ol className="mt-3 space-y-3">
+              {course.sessions.map((s) => (
+                <li key={s.position} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
+                    {s.position}
+                  </span>
+                  <div>
+                    <p className="font-semibold text-slate-900">{s.title ?? `Sesión ${s.position}`}</p>
+                    <p className="text-sm capitalize text-slate-600">
+                      {formatSessionDate.format(new Date(s.starts_at))} · {s.duration_minutes} min (hora de Monterrey)
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-2 text-sm text-slate-500">
+              ¿No puedes en vivo? La grabación queda disponible {course.replay_hours} horas después de cada sesión.
+            </p>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Tu instructor</h2>
+            <div className="mt-3 flex gap-4 rounded-xl border border-slate-200 bg-white p-5">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-lg font-bold text-white">
+                {course.instructor.display_name
+                  .split(" ")
+                  .slice(0, 2)
+                  .map((w) => w[0])
+                  .join("")}
+              </div>
+              <div>
+                <p className="font-semibold text-slate-900">{course.instructor.display_name}</p>
+                {course.instructor.topic && <p className="text-sm text-indigo-600">{course.instructor.topic}</p>}
+                {course.instructor.bio && <p className="mt-2 text-sm leading-relaxed text-slate-600">{course.instructor.bio}</p>}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tarjeta de compra */}
+        <aside className="lg:sticky lg:top-6 lg:self-start">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-3xl font-bold text-slate-900">{formatPrice(course)}</p>
+            <p className="mt-1 text-sm text-slate-500">Pago único · tarjeta, OXXO o meses sin intereses</p>
+
+            {left != null && !soldOut && left <= 10 && (
+              <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700">
+                Quedan {left} lugares
+              </p>
+            )}
+
+            {canBuy ? (
+              <Link
+                href={`/cursos/${course.slug}/comprar`}
+                className="mt-5 block rounded-lg bg-indigo-600 px-4 py-3 text-center font-semibold text-white transition hover:bg-indigo-700"
+              >
+                Inscribirme
+              </Link>
+            ) : (
+              <div className="mt-5 rounded-lg bg-slate-100 px-4 py-3 text-center font-semibold text-slate-500">
+                {soldOut ? "Cupo agotado" : "Ventas cerradas"}
+              </div>
+            )}
+
+            <ul className="mt-6 space-y-2.5 text-sm text-slate-600">
+              {INCLUDES(course.replay_hours).map((item) => (
+                <li key={item} className="flex gap-2">
+                  <span aria-hidden className="text-indigo-600">✓</span> {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </aside>
+      </section>
+    </main>
+  );
+}
+
+export async function generateStaticParams() {
+  const courses = await getPublishedCourses();
+  return courses.map((c) => ({ slug: c.slug }));
+}
