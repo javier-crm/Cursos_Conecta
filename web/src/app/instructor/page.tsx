@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { AnnounceForm } from "./AnnounceForm";
+import { ProfileForm } from "./ProfileForm";
 
 export const metadata = { title: "Panel de instructor" };
 
@@ -28,7 +29,7 @@ export default async function Page() {
   const admin = createAdminClient();
   const { data: instructor } = await admin
     .from("instructors")
-    .select("id, display_name, commission_pct")
+    .select("id, slug, display_name, commission_pct, headline, bio, credentials, photo_url")
     .eq("profile_id", user.id)
     .maybeSingle();
 
@@ -82,6 +83,16 @@ export default async function Page() {
           <p className="text-sm text-slate-500">Alumnos activos</p>
           <p className="mt-1 text-2xl font-bold text-slate-900">{studentIds.length}</p>
         </div>
+      </section>
+
+      <section className="mt-8">
+        <ProfileForm
+          slug={instructor.slug}
+          headline={instructor.headline}
+          bio={instructor.bio}
+          credentials={instructor.credentials}
+          photoUrl={instructor.photo_url}
+        />
       </section>
 
       <section className="mt-8 space-y-5">
