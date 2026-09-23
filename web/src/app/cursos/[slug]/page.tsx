@@ -4,7 +4,6 @@ import {
   formatPrice,
   formatSessionDate,
   getCourseBySlug,
-  getPublishedCourses,
   seatsLeft,
 } from "@/lib/catalog";
 
@@ -147,9 +146,4 @@ export default async function Page({ params }: PageProps<"/cursos/[slug]">) {
       </section>
     </main>
   );
-}
-
-export async function generateStaticParams() {
-  const courses = await getPublishedCourses();
-  return courses.map((c) => ({ slug: c.slug }));
 }
