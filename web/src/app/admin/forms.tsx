@@ -73,6 +73,7 @@ export type CourseFormData = {
   permanent_replay_price_cents?: number | null;
   sales_close_at?: string | null;
   video_url?: string | null;
+  community_url?: string | null;
   status?: string;
   sessions?: { position: number; title: string | null; starts_at: string; duration_minutes: number }[];
 };
@@ -163,6 +164,13 @@ export function CourseForm({
         type="url"
         defaultValue={course?.video_url ?? ""}
         placeholder="https://youtu.be/…"
+      />
+      <Field
+        label="Grupo del curso (liga de invitación de WhatsApp o Discord, opcional — el alumno la recibe al inscribirse)"
+        name="community_url"
+        type="url"
+        defaultValue={course?.community_url ?? ""}
+        placeholder="https://chat.whatsapp.com/…"
       />
 
       <fieldset className="rounded-xl border border-slate-200 p-4">

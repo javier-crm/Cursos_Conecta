@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { ReviewForm } from "./ReviewForm";
+import { SessionFeedbackForm } from "./SessionFeedbackForm";
+import { googleCalendarUrl } from "@/lib/calendar";
 import { ReferralCard } from "./ReferralCard";
 import { getMyReferralCode } from "./referral-actions";
 import { supabaseConfigured } from "@/lib/supabase/config";
@@ -24,7 +26,14 @@ type SessionRow = {
   duration_minutes: number;
 };
 
-type CourseRow = { id: string; slug: string; title: string; replay_hours: number; live_sessions: SessionRow[] };
+type CourseRow = {
+  id: string;
+  slug: string;
+  title: string;
+  replay_hours: number;
+  community_url: string | null;
+  live_sessions: SessionRow[];
+};
 
 type EnrollmentRow = {
   id: string;
@@ -38,7 +47,7 @@ export default async function Page() {
   const { data: enrollments } = await supabase
     .from("enrollments")
     .select(
-      "id, permanent_replay, course:courses(id, slug, title, replay_hours, live_sessions(id, position, title, starts_at, duration_minutes))",
+      "id, permanent_replay, course:courses(id, slug, title, replay_hours, community_url, live_sessions(id, position, title, starts_at, duration_minutes))",
     )
     .eq("user_id", user.id)
     .eq("status", "active")
@@ -59,12 +68,13 @@ export default async function Page() {
   const accessBySession = new Map((accessRows ?? []).map((a) => [a.session_id, a]));
   const referral = supabaseConfigured ? await getMyReferralCode() : null;
 
-  // Cursos que este alumno ya calificó
-  const { data: myReviews } = await supabase
-    .from("reviews")
-    .select("course_id")
-    .eq("user_id", user.id);
+  // Cursos ya calificados y encuestas de sesión ya respondidas
+  const [{ data: myReviews }, { data: myFeedback }] = await Promise.all([
+    supabase.from("reviews").select("course_id").eq("user_id", user.id),
+    supabase.from("session_feedback").select("session_id").eq("user_id", user.id),
+  ]);
   const reviewedCourses = new Set((myReviews ?? []).map((r) => r.course_id));
+  const feedbackDone = new Set((myFeedback ?? []).map((f) => f.session_id));
 
   const now = new Date();
   const firstName = profile?.full_name?.split(" ")[0];
@@ -113,6 +123,16 @@ export default async function Page() {
                           Grabaciones permanentes
                         </span>
                       )}
+                      {course.community_url && (
+                        <a
+                          href={course.community_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-full bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+                        >
+                          💬 Grupo del curso
+                        </a>
+                      )}
                       {courseEnded && (
                         <Link
                           href={`/panel/constancia/${course.id}`}
@@ -138,13 +158,33 @@ export default async function Page() {
                       const recordingExpired =
                         access?.recording_url && !recordingLive;
 
+                      const sessionEnded = now > end;
+                      const calendarUrl = googleCalendarUrl({
+                        title: `${course.title} — ${session.title ?? `Sesión ${session.position}`}`,
+                        startsAt: start,
+                        durationMinutes: session.duration_minutes,
+                        details: "Entra a la clase desde tu panel.",
+                      });
                       return (
-                        <li key={session.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-slate-50 px-4 py-3">
+                        <li key={session.id} className="rounded-lg bg-slate-50 px-4 py-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
                           <div>
                             <p className="text-sm font-medium text-slate-900">
                               {session.title ?? `Sesión ${session.position}`}
                             </p>
                             <p className="text-sm capitalize text-slate-500">{dateFmt.format(start)}</p>
+                            {!sessionEnded && (
+                              <p className="mt-0.5 text-xs">
+                                📅{" "}
+                                <a href={calendarUrl} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">
+                                  Google Calendar
+                                </a>
+                                {" · "}
+                                <a href={`/api/ics/${session.id}`} className="text-indigo-600 hover:underline">
+                                  Apple/Outlook (.ics)
+                                </a>
+                              </p>
+                            )}
                           </div>
                           <div className="flex items-center gap-2">
                             {joinOpen && access?.join_url && (
@@ -178,6 +218,10 @@ export default async function Page() {
                               <span className="text-sm text-slate-400">Grabación en proceso</span>
                             )}
                           </div>
+                        </div>
+                        {sessionEnded && !feedbackDone.has(session.id) && (
+                          <SessionFeedbackForm sessionId={session.id} />
+                        )}
                         </li>
                       );
                     })}

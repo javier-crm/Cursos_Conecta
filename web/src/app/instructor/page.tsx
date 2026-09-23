@@ -47,7 +47,7 @@ export default async function Page() {
   const { data: courses } = await admin
     .from("courses")
     .select(
-      "id, title, status, price_cents, capacity, live_sessions(id, position, title, starts_at), enrollments(id, status, user_id), orders(status, amount_cents)",
+      "id, title, status, price_cents, capacity, live_sessions(id, position, title, starts_at, session_feedback(rating, comment)), enrollments(id, status, user_id), orders(status, amount_cents)",
     )
     .eq("instructor_id", instructor.id)
     .order("created_at", { ascending: false });
@@ -112,11 +112,37 @@ export default async function Page() {
               </div>
 
               <ul className="mt-3 space-y-1 text-sm text-slate-600">
-                {sessions.map((s) => (
-                  <li key={s.id}>
-                    {s.title ?? `Sesión ${s.position}`} · {dateFmt.format(new Date(s.starts_at))}
-                  </li>
-                ))}
+                {sessions.map((s) => {
+                  const feedback = (s.session_feedback ?? []) as { rating: number; comment: string | null }[];
+                  const avg = feedback.length
+                    ? feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length
+                    : null;
+                  const comments = feedback.filter((f) => f.comment);
+                  return (
+                    <li key={s.id}>
+                      {s.title ?? `Sesión ${s.position}`} · {dateFmt.format(new Date(s.starts_at))}
+                      {avg != null && (
+                        <span className="ml-2 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                          ★ {avg.toFixed(1)} ({feedback.length})
+                        </span>
+                      )}
+                      {comments.length > 0 && (
+                        <details className="ml-4 mt-1">
+                          <summary className="cursor-pointer text-xs text-indigo-600 hover:underline">
+                            Comentarios privados de tus alumnos ({comments.length})
+                          </summary>
+                          <ul className="mt-1 space-y-1">
+                            {comments.map((f, i) => (
+                              <li key={i} className="rounded bg-slate-50 px-3 py-1.5 text-xs text-slate-600">
+                                ★{f.rating} — “{f.comment}”
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
 
               {active.length > 0 && <AnnounceForm courseId={course.id} />}

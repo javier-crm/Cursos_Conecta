@@ -240,7 +240,7 @@ export async function fulfillOrder(orderId: string, paymentIntentId: string | nu
   const [{ data: courses }, { data: authUser }, bundleTitle] = await Promise.all([
     admin
       .from("courses")
-      .select("title, live_sessions(position, title, starts_at)")
+      .select("title, community_url, live_sessions(position, title, starts_at)")
       .in("id", courseIds),
     admin.auth.admin.getUserById(order.user_id),
     order.bundle_id
@@ -255,7 +255,8 @@ export async function fulfillOrder(orderId: string, paymentIntentId: string | nu
       )
       .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
     const title = bundleTitle ?? courses[0].title;
-    await sendEmail(email, `¡Tu lugar está confirmado! ${title}`, purchaseConfirmationEmail(title, sessions));
+    const communityUrl = courses.find((c) => c.community_url)?.community_url ?? null;
+    await sendEmail(email, `¡Tu lugar está confirmado! ${title}`, purchaseConfirmationEmail(title, sessions, communityUrl));
   }
 }
 

@@ -16,7 +16,7 @@ export default async function Page({ params }: PageProps<"/admin/cursos/[id]">) 
     admin
       .from("courses")
       .select(
-        "id, instructor_id, title, subtitle, description, price_cents, capacity, replay_hours, permanent_replay_price_cents, sales_close_at, video_url, status, live_sessions(position, title, starts_at, duration_minutes)",
+        "id, instructor_id, title, subtitle, description, price_cents, capacity, replay_hours, permanent_replay_price_cents, sales_close_at, video_url, community_url, status, live_sessions(position, title, starts_at, duration_minutes)",
       )
       .eq("id", id)
       .maybeSingle(),

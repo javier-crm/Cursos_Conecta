@@ -49,7 +49,11 @@ const layout = (body: string) => `
     <p style="margin-top:32px;font-size:12px;color:#94a3b8">Cursos en Vivo · <a href="${SITE}" style="color:#6366f1">${SITE.replace(/^https?:\/\//, "")}</a></p>
   </div>`;
 
-export function purchaseConfirmationEmail(courseTitle: string, sessions: { title: string | null; starts_at: string; position: number }[]) {
+export function purchaseConfirmationEmail(
+  courseTitle: string,
+  sessions: { title: string | null; starts_at: string; position: number }[],
+  communityUrl?: string | null,
+) {
   const fmt = new Intl.DateTimeFormat("es-MX", {
     weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit",
     timeZone: "America/Monterrey",
@@ -63,6 +67,7 @@ export function purchaseConfirmationEmail(courseTitle: string, sessions: { title
     <ul style="padding-left:18px">${list}</ul>
     <p>El día de la clase, entra desde tu panel con el botón <strong>«Entrar a la clase»</strong>:</p>
     <p><a href="${SITE}/panel" style="display:inline-block;background:#4f46e5;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold">Ir a mi panel</a></p>
+    ${communityUrl ? `<p>💬 Únete al grupo del curso para avisos y material: <a href="${communityUrl}" style="color:#4f46e5;font-weight:bold">entrar al grupo</a></p>` : ""}
     <p style="color:#64748b;font-size:14px">Si no puedes asistir en vivo, la grabación estará disponible en tu panel durante un tiempo limitado después de cada sesión.</p>
   `);
 }

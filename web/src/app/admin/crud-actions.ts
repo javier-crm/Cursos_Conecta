@@ -74,6 +74,7 @@ export async function saveCourse(_: CrudState, formData: FormData): Promise<Crud
     // Monterrey es UTC-6 todo el año
     sales_close_at: salesCloseRaw ? new Date(`${salesCloseRaw}:00-06:00`).toISOString() : null,
     video_url: String(formData.get("video_url") ?? "").trim() || null,
+    community_url: String(formData.get("community_url") ?? "").trim() || null,
     status: String(formData.get("status") ?? "draft"),
   };
 
